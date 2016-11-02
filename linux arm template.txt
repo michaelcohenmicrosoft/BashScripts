@@ -1,0 +1,99 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "newVMName": {
+      "type": "string",
+      "defaultValue": "cohenrhel2"
+    },
+    "labName": {
+      "type": "string",
+      "defaultValue": "SQLVMCreation"
+    },
+    "size": {
+      "type": "string",
+      "defaultValue": "Standard_DS1_v2"
+    },
+    "userName": {
+      "type": "string",
+      "defaultValue": "michael"
+    },
+    "password": {
+      "type": "securestring"
+    },
+    "Run_Bash.scriptFileUris": {
+      "type": "string",
+      "defaultValue": "[[\"https://raw.githubusercontent.com/michaelcohenmicrosoft/BashScripts/master/testbash.sh\"]"
+    },
+    "Run_Bash.scriptToRun": {
+      "type": "string",
+      "defaultValue": "testbash.sh"
+    },
+    "Run_Bash.scriptArguments": {
+      "type": "string",
+      "defaultValue": ""
+    }
+  },
+  "variables": {
+    "labSubnetName": "[concat(variables('labVirtualNetworkName'), 'Subnet')]",
+    "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
+    "labVirtualNetworkName": "[concat('Dtl', parameters('labName'))]",
+    "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
+    "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2016-05-15",
+      "type": "Microsoft.DevTestLab/labs/virtualmachines",
+      "name": "[variables('vmName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
+        "notes": "Red Hat Enterprise Linux 7.2",
+        "galleryImageReference": {
+          "offer": "RHEL",
+          "publisher": "RedHat",
+          "sku": "7.2",
+          "osType": "Linux",
+          "version": "latest"
+        },
+        "size": "[parameters('size')]",
+        "userName": "[parameters('userName')]",
+        "password": "[parameters('password')]",
+        "isAuthenticationWithSshKey": false,
+        "artifacts": [
+          {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'linux-run-bash')]",
+            "parameters": [
+              {
+                "name": "scriptFileUris",
+                "value": "[parameters('Run_Bash.scriptFileUris')]"
+              },
+              {
+                "name": "scriptToRun",
+                "value": "[parameters('Run_Bash.scriptToRun')]"
+              },
+              {
+                "name": "scriptArguments",
+                "value": "[parameters('Run_Bash.scriptArguments')]"
+              }
+            ]
+          },
+          {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'linux-deprovision')]"
+          }
+        ],
+        "labSubnetName": "[variables('labSubnetName')]",
+        "disallowPublicIpAddress": false,
+        "storageType": "Premium",
+        "allowClaim": false
+      }
+    }
+  ],
+  "outputs": {
+    "labVMId": {
+      "type": "string",
+      "value": "[variables('vmId')]"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+    "$schema": "https://raw.githubusercontent.com/michaelcohenmicrosoft/BashScripts/master/Artifacts/linux-sudo-run-bash/ArtifactFile.json",
+    "title": "Sudo Run Bash",
+    "description": "Download and sudo run a bash script",
+    "iconUri": "",
+    "targetOsType": "Linux",
+	"runCommand": {
+		"commandToExecute": "sudo su testbash.sh"
+	}
+}
